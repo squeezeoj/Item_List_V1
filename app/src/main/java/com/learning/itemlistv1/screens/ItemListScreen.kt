@@ -6,11 +6,16 @@ package com.learning.itemlistv1.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -20,7 +25,7 @@ import com.learning.itemlistv1.NavRoutes
 //------------------------------------------------------------------
 // Items List Screen
 //------------------------------------------------------------------
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ItemListScreen(
 	navController: NavHostController,
@@ -31,6 +36,10 @@ fun ItemListScreen(
 	var checkedState by remember { mutableStateOf(viewModel.filtering) }
 	var textFilter by remember { mutableStateOf(TextFieldValue(viewModel.filterText)) }
 
+	//--- Keyboard Controller
+	val keyboardController = LocalSoftwareKeyboardController.current
+
+	//--- Display Content
 	Column {
 
 		//----------------------------------------------------------
@@ -56,7 +65,11 @@ fun ItemListScreen(
 				modifier = Modifier.width(100.dp),
 				label = { Text(text = "Filter") },
 				singleLine = true,
+				keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+				keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
 				onValueChange = {
+
+					//--- Set Text Here and in View Model
 					textFilter = it
 					viewModel.filterText = it.text
 
@@ -72,8 +85,13 @@ fun ItemListScreen(
 			Checkbox(
 				checked = checkedState,
 				onCheckedChange = {
+
+					//--- Set Text Here and in View Model
 					checkedState = it
 					viewModel.filtering = !viewModel.filtering
+
+					//--- Hide Keyboard
+					keyboardController?.hide()
 
 					//--- Update Show List to Trigger Recomposition
 					showList = viewModel.returnShowList()		// Updating Show List Triggers Recomposition
